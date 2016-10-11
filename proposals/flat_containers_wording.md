@@ -1,6 +1,9 @@
-- Flat Containers (DRAFT)
-- ISO WG12 - SG14 - LEWG
+- Flat containers wording (DRAFT)
+- Document number: D0XXXXR0
+- Date: 2016-10-11
 - Reply-to: Sean Middleditch <sean@middleditch.us>
+- Project: ISO JTC1/SC22/WG21: Programming Language C++
+- Audience: Library Evolution Working Group
 
 Summary
 ===
