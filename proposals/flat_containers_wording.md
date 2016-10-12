@@ -44,9 +44,17 @@ or `::values()` member would mandate non-interleaved storage.
 
 Non-interleaved access requires that elements be referenced as a pair of references rather
 than a pair of value, which does have some pecularities not found in other standard
-containers. Given the committee's mandate to focus on speed rather than compatibility with
-existing containers, this proposal will mandate that flat map elements be represented as a
-pair of references.
+containers. In particular, the references in this pair will be invalidated on insert or
+removal of elements; this is in addition to iterator invalidation. It essentially means that
+the following code will invoke UB:
+
+    auto element = *flat_container.find(key);
+    flat_container.insert({new_key, new_value});
+    auto value = element.second; // UB - element.second is a reference which was invalidated
+
+Given the committee's mandate to focus on speed rather than compatibility with existing
+containers, this proposal will mandate that flat map elements be represented as a pair
+of references.
 
 Bulk insert
 ---
@@ -161,6 +169,10 @@ In chapter [containers] add:
     pair<const Key&, T&>. Descriptions are provided here only for operations on flat_map that
     are not described in one of those tables or for operations where there is additional
     semantic operation.
+
+    The basic exception guarantee is provided by flat_map. Objects of value_type retrieved
+    from a flat_map contain references that are invalidated by any operation that invalidates
+    iterators for the container.
 
     namespace std {
         template <class Key, class T, class Compare = default_order_t<Key>,
@@ -365,6 +377,7 @@ In chapter [containers] add:
         Remarks: These signatures shall not participate in overload resolution unless
                  std::is_constructible_v<key_type, decltype(get<0>(forward<P>(x)))> and
                  std::is_constructible_v<mapped_type, decltype(get<1>(forward<P>(x)))> are true.
+                 The references in objects of type value_type will be invalidated.
 
     template <class... Args>
     pair<iterator, bool> try_emplace(const key_type& k, Args&&... args);
@@ -378,7 +391,8 @@ In chapter [containers] add:
                  constructed with forward_as_tuple(forward<Args>(args)...).
         Returns: In the first overload, the bool component of the returned pair is true if
                  and only if the insertion took place. The returned iterator points to the
-                 flat_map element whose key is equivalent to k.
+                 flat_map element whose key is equivalent to k. The references in objects of type
+                 value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
     
     template <class... Args>
@@ -393,7 +407,8 @@ In chapter [containers] add:
                  constructed with forward_as_tuple(forward<Args>(args)...).
         Returns: In the first overload, the bool component of the returned pair is true if
                  and only if the insertion took place. The returned iterator points to the
-                 flat_map element whose key is equivalent to k.
+                 flat_map element whose key is equivalent to k. The references in objects of type
+                 value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
     
     template <class M>
@@ -408,7 +423,8 @@ In chapter [containers] add:
                  mapped_type constructed with forward<M>(obj).
         Returns: In the first overload, the bool component of the returned pair is true if and
                  only if the insertion took place. The returned iterator points to the flat_map
-                 element whose key is equivalent to k.
+                 element whose key is equivalent to k. The references in objects of type
+                 value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
 
     template <class M> pair<iterator, bool> insert_or_assign(key_type&& k, M&& obj);
@@ -421,7 +437,8 @@ In chapter [containers] add:
                  mapped_type constructed with forward<M>(obj).
         Returns: In the first overload, the bool component of the returned pair is true if and
                  only if the insertion took place. The returned iterator points to the flat_map
-                 element whose key is equivalent to k.
+                 element whose key is equivalent to k. The references in objects of type
+                 value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
 
     flat_map specialized algorithms [flat_map.special]
