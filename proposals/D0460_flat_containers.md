@@ -52,11 +52,11 @@ Non-interleaved access requires that elements be referenced as a pair of referen
 than a pair of value, which does have some pecularities not found in other standard
 containers. In particular, the references in this pair will be invalidated on insert or
 removal of elements; this is in addition to iterator invalidation. It essentially means that
-the following code will invoke UB:
+the following code will invoke undefined behavior:
 
     auto element = *flat_container.find(key);
     flat_container.insert({new_key, new_value});
-    auto value = element.second; // UB - element.second is a reference which was invalidated
+    auto value = element.second; // undefine behavior, element.second is invalidated
 
 Given the prior feedback from committee review of P0038R0 suggesting that design decisions
 focus on efficiency rather than compatibility with existing containers, this proposal will
