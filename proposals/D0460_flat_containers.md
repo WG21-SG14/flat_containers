@@ -8,8 +8,13 @@
 Summary
 ===
 
-Proposed final design decisions and initial wording for `flat_map`, `flat_set`, `flat_multimap`,
-and `flat_multiset`.
+This proposal is a follow-up to
+[P0038R0 - Flat Containers](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0038r0.html).
+Flat containers are a heterogenous set of containers similar to `map` or `set` but which are not
+node-based. The primary purposes are to achieve better performance for small-medium element
+counts (a dozen to several hundreds) where CPU cache access patterns dominate performance. This
+proposal answers outstanding questions in P0038R0 and provides proposed wording for `flat_map`,
+`flat_set`, `flat_multimap`, and `flat_multiset`.
 
 Design
 ===
