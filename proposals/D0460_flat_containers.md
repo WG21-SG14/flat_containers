@@ -1,9 +1,9 @@
-- Flat containers wording (DRAFT)
-- Document number: D0460R0
-- Date: 2016-10-12
-- Reply-to: Sean Middleditch <sean@middleditch.us>
-- Project: ISO JTC1/SC22/WG21: Programming Language C++
-- Audience: Library Evolution Working Group
+Flat containers wording <br>
+Document number: D0460R1 <br>
+Date: 2016-10-13 <br>
+Reply-to: Sean Middleditch <sean@middleditch.us> <br>
+Project: ISO JTC1/SC22/WG21: Programming Language C++ <br>
+Audience: Library Evolution Working Group
 
 Summary
 ===
