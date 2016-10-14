@@ -30,8 +30,9 @@ Measurements available as part of an alternative proposal:
 
 http://pubby.github.io/proposal.html
 
-The layout choice would only affect public interface if `::data()`, `::keys()`, or `::values()`
-members were made available.
+The layout choice would only affect public interface if `flat_map::data()`, `flat_map::keys()`,
+or `flat_map::values()` members were made available. Iterator access can ensure in-order
+iteration no matter the internal layout choice.
 
 Such members are not proposed here, though may be proposed as a future addition. The author
 strongly recommends implementations to use a sorted layout.
@@ -44,8 +45,8 @@ element, as illustrated in the previous link. The author has also received a num
 both in person and via e-mail asking for this proposal to require non-interleaved flat map
 implementation. 
 
-A `::data()` member, if added, would effectively mandate interleaved storage. A `::keys()`
-or `::values()` member would mandate non-interleaved storage.
+A `flat_map::data()` member, if added, would effectively mandate interleaved storage. A
+`flat_map::keys()` or `flat_map::values()` member would mandate non-interleaved storage.
 
 Non-interleaved access requires that elements be referenced as a pair of references rather
 than a pair of value, which does have some pecularities not found in other standard
@@ -57,9 +58,9 @@ the following code will invoke UB:
     flat_container.insert({new_key, new_value});
     auto value = element.second; // UB - element.second is a reference which was invalidated
 
-Given the committee's mandate to focus on speed rather than compatibility with existing
-containers, this proposal will mandate that flat map elements be represented as a pair
-of references.
+Given the prior feedback from committee review of P0038R0 suggesting that design decisions
+focus on efficiency rather than compatibility with existing containers, this proposal will
+require that flat map elements be represented as a pair of references.
 
 Bulk insert
 ---
@@ -74,7 +75,7 @@ from already sorted data, which is the most efficient form of all.
 
 Additional cases can be added as a pure extension. This proposal will only suggest the most
 generic form of bulk insert that makes no assumptions about sorted status, which is easily
-represented by the standard container member `::insert(first, second)` or corresponding
+represented by the standard container member `flat_map::insert(first, second)` or corresponding
 constructor.
 
 Adaptor vs container
