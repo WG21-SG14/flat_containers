@@ -1,6 +1,6 @@
 Flat containers wording <br>
 Document number: D0460R1 <br>
-Date: 2016-10-13 <br>
+Date: 2016-10-14 <br>
 Reply-to: Sean Middleditch <sean@middleditch.us> <br>
 Project: ISO JTC1/SC22/WG21: Programming Language C++ <br>
 Audience: Library Evolution Working Group
@@ -139,7 +139,28 @@ In chapter [containers] add:
                   class Allocator = allocator<pair<const Key&, T&>>>
         class flat_multimap;
 
-        // TODO: comparison operators
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator==(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator< (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator!=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator> (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator>=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator<=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        void swap(flat_multimap<Key, T, Compare, Allocator>& x,
+                  flat_multimap<Key, T, Compare, Allocator>& y)
+                noexcept(noexcept(x.swap(y)));
     }
 
     Header <set> synopsis [flatassoc.set.syn]
@@ -149,13 +170,55 @@ In chapter [containers] add:
                   class Allocator = allocator<Key>>
         class flat_set;
 
-        // TODO: comparison operators
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator==(const flat_set<Key, T, Compare, Allocator>& x,
+                        const flat_set<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator< (const flat_set<Key, T, Compare, Allocator>& x,
+                        const flat_set<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator!=(const flat_set<Key, T, Compare, Allocator>& x,
+                        const flat_set<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator> (const flat_set<Key, T, Compare, Allocator>& x,
+                        const flat_set<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator>=(const flat_set<Key, T, Compare, Allocator>& x,
+                        const flat_set<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator<=(const flat_set<Key, T, Compare, Allocator>& x,
+                        const flat_set<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        void swap(flat_set<Key, T, Compare, Allocator>& x,
+                  flat_set<Key, T, Compare, Allocator>& y)
+                noexcept(noexcept(x.swap(y)));
 
         template <class Key, class Compare = default_order_t<Key>,
                   class Allocator = allocator<Key>>
         class flat_multiset;
 
-        // TODO: comparison operators
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator==(const flat_multiset<Key, T, Compare, Allocator>& x,
+                        const flat_multiset<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator< (const flat_multiset<Key, T, Compare, Allocator>& x,
+                        const flat_multiset<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator!=(const flat_multiset<Key, T, Compare, Allocator>& x,
+                        const flat_multiset<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator> (const flat_multiset<Key, T, Compare, Allocator>& x,
+                        const flat_multiset<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator>=(const flat_multiset<Key, T, Compare, Allocator>& x,
+                        const flat_multiset<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator<=(const flat_multiset<Key, T, Compare, Allocator>& x,
+                        const flat_multiset<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        void swap(flat_multiset<Key, T, Compare, Allocator>& x,
+                  flat_multiset<Key, T, Compare, Allocator>& y)
+                noexcept(noexcept(x.swap(y)));
     }
 
     Class template flat_map [flat_map]
