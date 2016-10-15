@@ -12,9 +12,10 @@ This proposal is a follow-up to
 [P0038R0 - Flat Containers](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0038r0.html).
 Flat containers are a heterogenous set of containers similar to `map` or `set` but which are not
 node-based. The primary purposes are to achieve better performance for small-medium element
-counts (a dozen to several hundreds) where CPU cache access patterns dominate performance. This
-proposal answers outstanding questions in P0038R0 and provides proposed wording for `flat_map`,
-`flat_set`, `flat_multimap`, and `flat_multiset`.
+counts (a dozen to several hundreds) where CPU cache access patterns dominate performance and
+where in-order traversal of elements is essential, e.g. when algorithms like `set_union` are
+required. This proposal answers outstanding questions in P0038R0 and provides proposed wording
+for `flat_map`, `flat_set`, `flat_multimap`, and `flat_multiset`.
 
 Design
 ===
@@ -26,24 +27,43 @@ Performance measurements have indicated that a sorted layout (as opposed to a le
 layout) is faster for sorted flat containers, and lookup/insert are roughly equal between both
 approaches for the sizes of data used with flat containers.
 
-Measurements available as part of an alternative proposal:
+Paul-Virak Khuong and Pat Morin performed an analysis of various layouts and search operations
+for flat containers in their 2015 paper
+[Array Layouts for Comparison-based Searching](https://arxiv.org/ftp/arxiv/papers/1509/1509.05053.pdf).
+Their findings are summarized by the quote
 
-http://pubby.github.io/proposal.html
+> After extensive testing and tuning on a wide variety of modern hardware, we arrive
+at the conclusion that, for small values of n, sorted order, combined with a good implementation
+of binary search is best.
+
+Further explanation and light analysis can be found in a competing proposal
+[Flat Containers the C++ Way](http://pubby.github.io/proposal.html) by "pubby".
+
+The sorted order provides strong performance for all important operations when the container's
+key data fits in cache. When the container does not fit in cache, level-ordered layouts will
+provide much more efficient insert, find, and erase operations at the expense of much slower
+iteration operations. As one of the primary purposes of a flat container over an unordered
+container is the use of algorithms requiring in-order traversal (e.g. `set_union`) this loss
+of iteration performance is unacceptable.
 
 The layout choice would only affect public interface if `flat_map::data()`, `flat_map::keys()`,
 or `flat_map::values()` members were made available. Iterator access can ensure in-order
 iteration no matter the internal layout choice.
 
-Such members are not proposed here, though may be proposed as a future addition. The author
+Such members are not proposed here, though may be proposed as a future addition. This author
 strongly recommends implementations to use a sorted layout.
 
 Non-interleaved
 ---
 
 Non-interleaved keys and values are faster for flat maps and multimaps for larger sizes of value
-element, as illustrated in the previous link. The author has also received a number of requests
-both in person and via e-mail asking for this proposal to require non-interleaved flat map
-implementation. 
+element. As noted in the previous section, flat containers are good fits when the total key data
+size fits in cache. Separating keys from values for flat map containers allows more of the keys
+to fit in a single cache line which in turn improves efficiency for insert, find, and erase
+operations.
+
+This paper's author has also received a number of requests both in person and via e-mail asking
+for this proposal to require non-interleaved flat map implementation. 
 
 A `flat_map::data()` member, if added, would effectively mandate interleaved storage. A
 `flat_map::keys()` or `flat_map::values()` member would mandate non-interleaved storage.
@@ -65,7 +85,7 @@ require that flat map elements be represented as a pair of references.
 Bulk insert
 ---
 
-The author has received several very strong requests to ensure that a bulk insert is
+This author has received several very strong requests to ensure that a bulk insert is
 available based on real-world usage scenarios from large projects, such as Chromium.
 
 There are several possible forms of bulk insert. The first is a bulk insert of unsorted data,
