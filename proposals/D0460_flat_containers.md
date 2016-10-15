@@ -62,6 +62,8 @@ size fits in cache. Separating keys from values for flat map containers allows m
 to fit in a single cache line which in turn improves efficiency for insert, find, and erase
 operations.
 
+This issue is not relevant to set containers as they only contain key data.
+
 This paper's author has also received a number of requests both in person and via e-mail asking
 for this proposal to require non-interleaved flat map implementation. 
 
@@ -547,6 +549,197 @@ In chapter [containers] add:
     template <class Key, class T, class Compare, class Allocator>
     void swap(flat_map<Key, T, Compare, Allocator>& x,
               flat_map<Key, T, Compare, Allocator>& y)
+        noexcept(noexcept(x.swap(y)));
+
+        Effects: As if by x.swap(y).
+
+    Class template flat_set [flat_set]
+
+    Class template flat_set overview [flat_set.overview]
+
+    A flat)set is an associative container that supports unique keys (contains at most one of each
+    key value) and provides for fast retrieval of the keys themselves. The flat_set class supports
+    bidirectional iterators.
+    
+    A flat_set satisfies all of the requirements of a container, of a reversible container,
+    of an associative container (23.2.4), and of an allocator-aware container (Table 83).
+    A flat_set also provides most operations described in (23.2.4) for unique keys. This means
+    that a flat_set supports the a_uniq operations in (23.2.4) but not the a_eq operations.
+    For a flat_set<Key> both the key_type and value_type are Key. Descriptions are provided here
+    only for operations on flat_set that are not described in one of these tables and for
+    operations where there is additional semantic information.
+
+    namespace std {
+        template <class Key, class Compare = default_order_t<Key>,
+                  class Allocator = allocator<Key>>
+        class flat_set {
+        public:
+            // types:
+            using key_type = Key;
+            using key_compare = Compare;
+            using value_type = Key;
+            using value_compare = Compare;
+            using allocator_type = Allocator;
+            using pointer = typename allocator_traits<Allocator>::pointer;
+            using const_pointer = typename allocator_traits<Allocator>::const_pointer;
+            using reference = value_type&;
+            using const_reference = const value_type&;
+            using size_type = implementation-defined;
+            using difference_type = implementation-defined;
+            using iterator = implementation-defined;
+            using const_iterator = implementation-defined;
+            using reverse_iterator = std::reverse_iterator<iterator>;
+            using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+            // construct/copy/destroy:
+            flat_set() : flat_set(Compare()) { }
+            explicit flat_set(const Compare& comp, const Allocator& = Allocator());
+            template <class InputIterator, class Sentinel>
+            flat_set(InputIterator first, Sentinel last,
+                const Compare& comp = Compare(), const Allocator& = Allocator());
+            flat_set(const flat_set& x);
+            flat_set(flat_set&& x);
+            explicit flat_set(const Allocator&);
+            flat_set(const flat_set&, const Allocator&);
+            flat_set(flat_set&&, const Allocator&);
+            flat_set(initializer_list<value_type>, const Compare& = Compare(),
+                const Allocator& = Allocator());
+            template <class InputIterator, class Sentinel>
+            flat_set(InputIterator first, Sentinel last, const Allocator& a)
+                : flat_set(first, last, Compare(), a) { }
+            flat_set(initializer_list<value_type> il, const Allocator& a)
+                : flat_set(il, Compare(), a) { }
+            ~flat_set();
+
+            flat_set& operator=(const flat_set& x);
+            flat_set& operator=(flat_set&& x)
+                noexcept(allocator_traits<Allocator>::is_always_equal::value &&
+                         is_nothrow_move_assignable_v<Compare>);
+            flat_set& operator=(initializer_list<value_type>);
+
+            allocator_type get_allocator() const noexcept;
+
+            // iterators:
+            iterator begin() noexcept;
+            const_iterator begin() const noexcept;
+            iterator end() noexcept;
+            const_iterator end() const noexcept;
+
+            reverse_iterator rbegin() noexcept;
+            const_reverse_iterator rbegin() const noexcept;
+            reverse_iterator rend() noexcept;
+            const_reverse_iterator rend() const noexcept;
+
+            const_iterator cbegin() const noexcept;
+            const_iterator cend() const noexcept;
+            const_reverse_iterator crbegin() const noexcept;
+            const_reverse_iterator crend() const noexcept;
+
+            // capacity:
+            bool empty() const noexcept;
+            size_type size() const noexcept;
+            size_type max_size() const noexcept;
+
+            // modifiers:
+            template <class... Args> pair<iterator, bool> emplace(Args&&... args);
+            template <class... Args>
+            iterator emplace_hint(const_iterator position, Args&&... args);
+
+            pair<iterator,bool> insert(const value_type& x);
+            pair<iterator,bool> insert(value_type&& x);
+            iterator insert(const_iterator position, const value_type& x);
+            iterator insert(const_iterator position, value_type&& x);
+            template <class InputIterator, class Sentinel>
+            void insert(InputIterator first, Sentinel last);
+            void insert(initializer_list<value_type>);
+
+            iterator erase(iterator position);
+            iterator erase(const_iterator position);
+            size_type erase(const key_type& x);
+            iterator erase(const_iterator first, const_iterator last);
+
+            void swap(flat_set&)
+                noexcept(allocator_traits<Allocator>::is_always_equal::value &&
+                         is_nothrow_swappable_v<Compare>);
+            void clear() noexcept;
+
+            // observers:
+            key_compare key_comp() const;
+            value_compare value_comp() const;
+
+            // flat_set operations:
+            iterator find(const key_type& x);
+            const_iterator find(const key_type& x) const;
+            template <class K> iterator find(const K& x);
+            template <class K> const_iterator find(const K& x) const;
+
+            size_type count(const key_type& x) const;
+            template <class K> size_type count(const K& x) const;
+
+            iterator lower_bound(const key_type& x);
+            const_iterator lower_bound(const key_type& x) const;
+            template <class K> iterator lower_bound(const K& x);
+            template <class K> const_iterator lower_bound(const K& x) const;
+
+            iterator upper_bound(const key_type& x);
+            const_iterator upper_bound(const key_type& x) const;
+            template <class K> iterator upper_bound(const K& x);
+            template <class K> const_iterator upper_bound(const K& x) const;
+
+            pair<iterator, iterator> equal_range(const key_type& x);
+            pair<const_iterator, const_iterator> equal_range(const key_type& x) const;
+            template <class K>
+            pair<iterator, iterator> equal_range(const K& x);
+            template <class K>
+            pair<const_iterator, const_iterator> equal_range(const K& x) const;
+        };
+
+        template <class Key, class Compare, class Allocator>
+        bool operator==(const flat_set<Key, Compare, Allocator>& x,
+                        const flat_set<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator< (const flat_set<Key, Compare, Allocator>& x,
+                        const flat_set<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator!=(const flat_set<Key, Compare, Allocator>& x,
+                        const flat_set<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator> (const flat_set<Key, Compare, Allocator>& x,
+                        const flat_set<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator>=(const flat_set<Key, Compare, Allocator>& x,
+                        const flat_set<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator<=(const flat_set<Key, Compare, Allocator>& x,
+                        const flat_set<Key, Compare, Allocator>& y);
+        
+        template <class Key, class Compare, class Allocator>
+        void swap(flat_set<Key, Compare, Allocator>& x,
+                  flat_set<Key, Compare, Allocator>& y)
+            noexcept(noexcept(x.swap(y)));
+    }
+
+    flat_set constructors, copy, and assignment [flat_set.cons]
+
+    explicit flat_set(const Compare& comp, const Allocator& = Allocator());
+
+        Effects: Constructs an empty flat_set using the specified comparison objects and allocator.
+        Complexity: Constant.
+
+    template <class InputIterator>
+    flat_set(InputIterator first, InputIterator last,
+        const Compare& comp = Compare(), const Allocator& = Allocator());
+
+        Effects: Constructs an empty flat_set using the specified comparison object and allocator,
+                 and inserts elements from the range [first, last).
+        Complexity: Linear in N if the range [first, last) is already sorted using comp and
+                    otherwise N log N, where N is last - first.
+
+    flat_set specialized algorithms [flat_set.special]
+    
+    template <class Key, class Compare, class Allocator>
+    void swap(flat_set<Key, Compare, Allocator>& x,
+              flat_set<Key, Compare, Allocator>& y)
         noexcept(noexcept(x.swap(y)));
 
         Effects: As if by x.swap(y).
