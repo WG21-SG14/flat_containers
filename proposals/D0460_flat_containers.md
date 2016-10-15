@@ -1,5 +1,5 @@
 Flat containers wording <br>
-Document number: D0460R1 <br>
+Document number: D0460R2 <br>
 Date: 2016-10-14 <br>
 Reply-to: Sean Middleditch <sean@middleditch.us> <br>
 Project: ISO JTC1/SC22/WG21: Programming Language C++ <br>
