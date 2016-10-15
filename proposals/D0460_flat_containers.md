@@ -1,6 +1,6 @@
 Flat containers wording <br>
-Document number: D0460R2 <br>
-Date: 2016-10-14 <br>
+Document number: D0460R3 <br>
+Date: 2016-10-15 <br>
 Reply-to: Sean Middleditch <sean@middleditch.us> <br>
 Project: ISO JTC1/SC22/WG21: Programming Language C++ <br>
 Audience: Library Evolution Working Group
@@ -101,17 +101,29 @@ constructor.
 Adaptor vs container
 ---
 
-Pubby makes some strong arguments for making flat containers a set of adaptors. Namely, this
-allows flat containers to layer over `vector` or the common `small_vector` types found in
-many performance-sensitive applications.
+The competing proposal from pubby makes some strong arguments for making flat containers a set
+of adaptors. Namely, this allows flat containers to layer over `vector` or the common
+`small_vector` types found in many applications where heap allocations are verboten or best
+avoided. With the appropriately loose requirements, an adaptor would also allow a flat container
+to implemented over a `std::deque`, a ring buffer, or other containers.
 
-Chandler Carruth in his CppCon 2016 talk "High Performance Code 201: Hybrid Data Structures"
-makes a strong case for using real containers rather than using adaptors.
+In contrast to pubby's proposal, Chandler Carruth in his CppCon 2016 talk
+["High Performance Code 201: Hybrid Data Structures"](https://www.youtube.com/watch?v=vElZc6zSIXM)
+makes a strong case for using real containers rather than using adaptors or allocators for
+`small_vector` types. Carruth argues both that adaptors won't work because they compose poorly
+with copy and move operations, and further illustrates that allocators _cannot_ implement the
+semantics of `std::vector` due to the iterator invalidation rules. As invalidation has an even
+deeper impact on flat map containers, this author feels these same argues will strongly apply
+to flat containers.
+
+This paper - based in part on Carruth's talk, on the committee's prior feedback on P0038R0, and
+on the author's own experience implementing flat container - proposes that flat containers be
+not adaptor templates.
 
 This paper does not propose any small flat containers, but such containers may be useful to
-propose in the future for all the same reasons that small vectors are useful.
-
-This paper proposes real containers and does not propose adaptors.
+propose in the future for all the same reasons that small vectors are useful. This author feels
+that the allocator model semantics could be updated to address the problems Carruth outlined
+for small vectors and consequently obviate the need to ever add distinct small flat containers.
 
 Wording
 ===
