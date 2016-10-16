@@ -1,8 +1,13 @@
-Flat containers wording <br>
-Document number: D0460R4 <br>
-Date: 2016-10-15 <br>
-Reply-to: Sean Middleditch <sean@middleditch.us> <br>
-Project: ISO JTC1/SC22/WG21: Programming Language C++ <br>
+Flat containers wording
+
+Document number: P0460R0
+
+Date: 2016-10-15
+
+Reply-to: Sean Middleditch <sean@middleditch.us>
+
+Project: ISO JTC1/SC22/WG21: Programming Language C++
+
 Audience: Library Evolution Working Group
 
 Summary
@@ -1147,3 +1152,13 @@ In chapter [containers] add:
         noexcept(noexcept(x.swap(y)));
 
         Effects: As if by x.swap(y).
+
+Acknowledgements
+===
+Michael Wong
+
+Michael McLaughlin
+
+Patrice Roy
+
+pubby
