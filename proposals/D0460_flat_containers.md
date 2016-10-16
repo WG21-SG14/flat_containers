@@ -1,5 +1,5 @@
 Flat containers wording <br>
-Document number: D0460R3 <br>
+Document number: D0460R4 <br>
 Date: 2016-10-15 <br>
 Reply-to: Sean Middleditch <sean@middleditch.us> <br>
 Project: ISO JTC1/SC22/WG21: Programming Language C++ <br>
@@ -15,7 +15,7 @@ node-based. The primary purposes are to achieve better performance for small-med
 counts (a dozen to several hundreds) where CPU cache access patterns dominate performance and
 where in-order traversal of elements is essential, e.g. when algorithms like `set_union` are
 required. This proposal answers outstanding questions in P0038R0 and provides proposed wording
-for `flat_map`, `flat_set`, `flat_multimap`, and `flat_multiset`.
+for `flat_multimap`, `flat_set`, `flat_multimap`, and `flat_multiset`.
 
 Design
 ===
@@ -46,8 +46,8 @@ iteration operations. As one of the primary purposes of a flat container over an
 container is the use of algorithms requiring in-order traversal (e.g. `set_union`) this loss
 of iteration performance is unacceptable.
 
-The layout choice would only affect public interface if `flat_map::data()`, `flat_map::keys()`,
-or `flat_map::values()` members were made available. Iterator access can ensure in-order
+The layout choice would only affect public interface if `flat_multimap::data()`, `flat_multimap::keys()`,
+or `flat_multimap::values()` members were made available. Iterator access can ensure in-order
 iteration no matter the internal layout choice.
 
 Such members are not proposed here, though may be proposed as a future addition. This author
@@ -67,8 +67,8 @@ This issue is not relevant to set containers as they only contain key data.
 This paper's author has also received a number of requests both in person and via e-mail asking
 for this proposal to require non-interleaved flat map implementation. 
 
-A `flat_map::data()` member, if added, would effectively mandate interleaved storage. A
-`flat_map::keys()` or `flat_map::values()` member would mandate non-interleaved storage.
+A `flat_multimap::data()` member, if added, would effectively mandate interleaved storage. A
+`flat_multimap::keys()` or `flat_multimap::values()` member would mandate non-interleaved storage.
 
 Non-interleaved access requires that elements be referenced as a pair of references rather
 than a pair of value, which does have some pecularities not found in other standard
@@ -97,7 +97,7 @@ from already sorted data, which is the most efficient form of all.
 
 Additional cases can be added as a pure extension. This proposal will only suggest the most
 generic form of bulk insert that makes no assumptions about sorted status, which is easily
-represented by the standard container member `flat_map::insert(first, second)` or corresponding
+represented by the standard container member `flat_multimap::insert(first, second)` or corresponding
 constructor.
 
 Adaptor vs container
@@ -136,37 +136,37 @@ In chapter [containers] add:
 
     In general [flatassoc.general]
 
-    The header <flat_map> defines the class templates flat_map and flat_multimap; the header
+    The header <flat_multimap> defines the class templates flat_multimap and flat_multimap; the header
     <flat_set> defines the class templates flat_set and flat_multiset.
 
-    Header <flat_map> synopsis [flatassoc.map.syn]
+    Header <flat_multimap> synopsis [flatassoc.map.syn]
 
     namespace std {
         template <class Key, class T, class Compare = default_order_t<Key>,
                   class Allocator = allocator<pair<const Key&, T&>>>
-        class flat_map;
+        class flat_multimap;
 
         template <class Key, class T, class Compare, class Allocator>
-        bool operator==(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator==(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator< (const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator< (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator!=(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator!=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator> (const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator> (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator>=(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator>=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator<=(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator<=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        void swap(flat_map<Key, T, Compare, Allocator>& x,
-                  flat_map<Key, T, Compare, Allocator>& y)
+        void swap(flat_multimap<Key, T, Compare, Allocator>& x,
+                  flat_multimap<Key, T, Compare, Allocator>& y)
                 noexcept(noexcept(x.swap(y)));
 
         template <class Key, class T, class Compare = default_order_t<Key>,
@@ -255,32 +255,32 @@ In chapter [containers] add:
                 noexcept(noexcept(x.swap(y)));
     }
 
-    Class template flat_map [flat_map]
+    Class template flat_multimap [flat_multimap]
 
-    Class template flat_map overview [flat_map.overview]
+    Class template flat_multimap overview [flat_multimap.overview]
 
-    A flat_map is an associative container that supports unique keys (contains at most one
+    A flat_multimap is an associative container that supports unique keys (contains at most one
     of each key value) and provides for retrieval of values of another type T based on the
     keys, as well as fast iteration of the contained elements. Storage for all keys is
     guaranteed to be contiguous in memory and storage for all values is guaranteed to be
-    contiguous in memory. The flat_map class supports bidirectional iterators.
+    contiguous in memory. The flat_multimap class supports bidirectional iterators.
 
-    A flat_map satisfies all the requirements of a container and of a reversible container.
-    A flat_map also provides most operations of an associative container and most
-    operations for unique keys. This means that a flat_map supports the a_uniq operations but
-    not the a_eq operations. For a flat_map<Key, T> the key_type is Key and the value_type is
-    pair<const Key&, T&>. Descriptions are provided here only for operations on flat_map that
+    A flat_multimap satisfies all the requirements of a container and of a reversible container.
+    A flat_multimap also provides most operations of an associative container and most
+    operations for unique keys. This means that a flat_multimap supports the a_uniq operations but
+    not the a_eq operations. For a flat_multimap<Key, T> the key_type is Key and the value_type is
+    pair<const Key&, T&>. Descriptions are provided here only for operations on flat_multimap that
     are not described in one of those tables or for operations where there is additional
     semantic operation.
 
-    The basic exception guarantee is provided by flat_map. Objects of value_type retrieved
-    from a flat_map contain references that are invalidated by any operation that invalidates
+    The basic exception guarantee is provided by flat_multimap. Objects of value_type retrieved
+    from a flat_multimap contain references that are invalidated by any operation that invalidates
     iterators for the container.
 
     namespace std {
         template <class Key, class T, class Compare = default_order_t<Key>,
                   class Allocator = allocator<pair<const Key&, T&>>>
-        class flat_map {
+        class flat_multimap {
         public:
             using key_type = Key;
             using mapped_typed = T;
@@ -294,24 +294,24 @@ In chapter [containers] add:
             using reverse_iterator = implementation-defined;
             using const_reverse_iterator = implementation-defined;
 
-            flat_map() : flat_map(Compare()) {}
-            explicit flat_map(const Compare& comp, const Allocator& = Allocator());
+            flat_multimap() : flat_multimap(Compare()) {}
+            explicit flat_multimap(const Compare& comp, const Allocator& = Allocator());
             template <class InputIterator, class Sentinel>
-            flat_map(InputIterator first, Sentinel second, const Compare& comp = Compare{},
+            flat_multimap(InputIterator first, Sentinel second, const Compare& comp = Compare{},
                      const Allocator& = Allocator{});
-            flat_map(const flat_map&);
-            flat_map(flat_map&&)
+            flat_multimap(const flat_multimap&);
+            flat_multimap(flat_multimap&&)
                 noexcept(allocator_traits<Allocator>::is_always_equal::value &&
                          is_nothrow_move_assignable_v<Compare>);
-            explicit flat_map(const Allocator&);
-            flat_map(const flat_map&, const Allocator&);
-            flat_map(flat_map&&, const Allocator&);
+            explicit flat_multimap(const Allocator&);
+            flat_multimap(const flat_multimap&, const Allocator&);
+            flat_multimap(flat_multimap&&, const Allocator&);
             template <class InputIterator, class Sentinel>
-            flat_map(InputIterator first, Sentinel second, const Allocator& a = Allocator{}) :
-                flat_map(first, second, Compare{}, a) {}
-            ~flat_map();
-            flat_map& operator=(flat_map const&);
-            flat_map& operator=(flat_map&&)
+            flat_multimap(InputIterator first, Sentinel second, const Allocator& a = Allocator{}) :
+                flat_multimap(first, second, Compare{}, a) {}
+            ~flat_multimap();
+            flat_multimap& operator=(flat_multimap const&);
+            flat_multimap& operator=(flat_multimap&&)
                 noexcept(allocator_traits<Allocator>::is_always_equal::value &&
                          is_nothrow_move_assignable_v<Compare>);
             allocator_type get_allocator() const noexcept;
@@ -411,49 +411,49 @@ In chapter [containers] add:
         }
 
         template <class Key, class T, class Compare, class Allocator>
-        bool operator==(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator==(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator< (const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator< (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator!=(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator!=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator> (const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator> (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator>=(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator>=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
         template <class Key, class T, class Compare, class Allocator>
-        bool operator<=(const flat_map<Key, T, Compare, Allocator>& x,
-                        const flat_map<Key, T, Compare, Allocator>& y);
+        bool operator<=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
 
         // specialized algorithms:
         template <class Key, class T, class Compare, class Allocator>
-        void swap(flat_map<Key, T, Compare, Allocator>& x,
-                  flat_map<Key, T, Compare, Allocator>& y)
+        void swap(flat_multimap<Key, T, Compare, Allocator>& x,
+                  flat_multimap<Key, T, Compare, Allocator>& y)
                 noexcept(noexcept(x.swap(y)));
     }
 
-    flat_map constructors, copy, and assignment [flat_map.cons]
+    flat_multimap constructors, copy, and assignment [flat_multimap.cons]
 
-    explicit flat_map(const Compare& comp, const Allocator& = Allocator{});
+    explicit flat_multimap(const Compare& comp, const Allocator& = Allocator{});
 
-        Effects: Constructs an empty flat_map using the specified comparison objects
+        Effects: Constructs an empty flat_multimap using the specified comparison objects
                  and allocator.
         Complexity: Constant.
 
     template <class InputIterator, class Sentinel>
-    flat_map(InputIterator first, Sentinel second, const Compare& comp = Compare{},
+    flat_multimap(InputIterator first, Sentinel second, const Compare& comp = Compare{},
              const Allocator& = Allocator{});
     
-        Effects: Constructs an empty flat_map using the specified comparison objects and
+        Effects: Constructs an empty flat_multimap using the specified comparison objects and
                  allocator, and inserts elements from the range [first, last).
         Complexity: Linear in N if the range [first, last) is already sorted using comp and
                     otherwise N logN, where N is last - first.
 
-    flat_map element access [flat_map.access]
+    flat_multimap element access [flat_multimap.access]
 
     T& operator[](const key_type& x);
 
@@ -470,7 +470,7 @@ In chapter [containers] add:
         Effects: An exception object of type out_of_range if no such element is present.
         Complexity: Logarithmic.
 
-    flat_map modifiers [flat_map.modifiers]
+    flat_multimap modifiers [flat_multimap.modifiers]
 
     template <class P> pair<iterator, bool> insert(P&& x);
     template <class P> iterator insert(const_iterator position, P&& x);
@@ -489,12 +489,12 @@ In chapter [containers] add:
     
         Requires: mapped_type shall be EmplaceConstructible into map from
                   forward_as_tuple(forward<Args>(args)...).
-        Effects: If the flat_map already contains an element whose key is equivalent to k, there
+        Effects: If the flat_multimap already contains an element whose key is equivalent to k, there
                  is no effect. Otherwise inserts an object at the key of type mapped_type
                  constructed with forward_as_tuple(forward<Args>(args)...).
         Returns: In the first overload, the bool component of the returned pair is true if
                  and only if the insertion took place. The returned iterator points to the
-                 flat_map element whose key is equivalent to k. The references in objects of type
+                 flat_multimap element whose key is equivalent to k. The references in objects of type
                  value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
     
@@ -505,12 +505,12 @@ In chapter [containers] add:
     
         Requires: mapped_type shall be EmplaceConstructible into map from
                   forward_as_tuple(forward<Args>(args)...).
-        Effects: If the flat_map already contains an element whose key is equivalent to k, there
+        Effects: If the flat_multimap already contains an element whose key is equivalent to k, there
                  is no effect. Otherwise inserts an object at the key of type mapped_type
                  constructed with forward_as_tuple(forward<Args>(args)...).
         Returns: In the first overload, the bool component of the returned pair is true if
                  and only if the insertion took place. The returned iterator points to the
-                 flat_map element whose key is equivalent to k. The references in objects of type
+                 flat_multimap element whose key is equivalent to k. The references in objects of type
                  value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
     
@@ -525,7 +525,7 @@ In chapter [containers] add:
                  forward<M>(obj) to e.second. Otherwise inserts an object at the key of type
                  mapped_type constructed with forward<M>(obj).
         Returns: In the first overload, the bool component of the returned pair is true if and
-                 only if the insertion took place. The returned iterator points to the flat_map
+                 only if the insertion took place. The returned iterator points to the flat_multimap
                  element whose key is equivalent to k. The references in objects of type
                  value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
@@ -539,16 +539,225 @@ In chapter [containers] add:
                  forward<M>(obj) to e.second. Otherwise inserts an object at the key of type
                  mapped_type constructed with forward<M>(obj).
         Returns: In the first overload, the bool component of the returned pair is true if and
-                 only if the insertion took place. The returned iterator points to the flat_map
+                 only if the insertion took place. The returned iterator points to the flat_multimap
                  element whose key is equivalent to k. The references in objects of type
                  value_type will be invalidated.
         Complexity: The same as emplace and emplace_hint, respectively.
 
-    flat_map specialized algorithms [flat_map.special]
+    flat_multimap specialized algorithms [flat_multimap.special]
 
     template <class Key, class T, class Compare, class Allocator>
-    void swap(flat_map<Key, T, Compare, Allocator>& x,
-              flat_map<Key, T, Compare, Allocator>& y)
+    void swap(flat_multimap<Key, T, Compare, Allocator>& x,
+              flat_multimap<Key, T, Compare, Allocator>& y)
+        noexcept(noexcept(x.swap(y)));
+
+        Effects: As if by x.swap(y).
+
+
+    Class template flat_multimap [flat_multimap]
+
+    Class template flat_multimap overview [flat_multiap.overview]
+    
+    A flat_multimap is an associative container that supports equivalent keys (possibly containing
+    multiple copies of the same key value) and provides for retrieval of values of another type T
+    based on the keys, as well as fast iteration of the contained elements. Storage for all keys is
+    guaranteed to be contiguous in memory and storage for all values is guaranteed to be
+    contiguous in memory. The flat_multimap class supports bidirectional iterators.
+
+    A flat_multimap satisfies all the requirements of a container and of a reversible container.
+    A flat_multimap also provides most operations of an associative container and most
+    operations for equal keys. This means that a flat_multimap supports the a_eq operations but
+    not the a_uniq operations. For a flat_multimap<Key, T> the key_type is Key and the value_type is
+    pair<const Key&, T&>. Descriptions are provided here only for operations on flat_multimap that
+    are not described in one of those tables or for operations where there is additional
+    semantic operation.
+
+    The basic exception guarantee is provided by flat_multimap. Objects of value_type retrieved
+    from a flat_multimap contain references that are invalidated by any operation that invalidates
+    iterators for the container.
+
+    namespace std {
+        template <class Key, class T, class Compare = default_order_t<Key>,
+                  class Allocator = allocator<pair<const Key&, T&>>>
+        class flat_multimap {
+        public:
+            using key_type = Key;
+            using mapped_typed = T;
+            using value_type = pair<const Key&, T&>;
+            using key_compare = Compare;
+            using allocator_type = Allocator;
+            using size_type = implementation-defined;
+            using difference_type = implementation-defined;
+            using iterator = implementation-defined;
+            using const_iterator = implementation-defined;
+            using reverse_iterator = implementation-defined;
+            using const_reverse_iterator = implementation-defined;
+
+            flat_multimap() : flat_multimap(Compare()) {}
+            explicit flat_multimap(const Compare& comp, const Allocator& = Allocator());
+            template <class InputIterator, class Sentinel>
+            flat_multimap(InputIterator first, Sentinel second, const Compare& comp = Compare{},
+                     const Allocator& = Allocator{});
+            flat_multimap(const flat_multimap&);
+            flat_multimap(flat_multimap&&)
+                noexcept(allocator_traits<Allocator>::is_always_equal::value &&
+                         is_nothrow_move_assignable_v<Compare>);
+            explicit flat_multimap(const Allocator&);
+            flat_multimap(const flat_multimap&, const Allocator&);
+            flat_multimap(flat_multimap&&, const Allocator&);
+            template <class InputIterator, class Sentinel>
+            flat_multimap(InputIterator first, Sentinel second, const Allocator& a = Allocator{}) :
+                flat_multimap(first, second, Compare{}, a) {}
+            ~flat_multimap();
+            flat_multimap& operator=(flat_multimap const&);
+            flat_multimap& operator=(flat_multimap&&)
+                noexcept(allocator_traits<Allocator>::is_always_equal::value &&
+                         is_nothrow_move_assignable_v<Compare>);
+            allocator_type get_allocator() const noexcept;
+            
+            // iterators:
+            iterator begin() noexcept;
+            const_iterator begin() const noexcept;
+            iterator end() noexcept;
+            const_iterator end() const noexcept;
+
+            reverse_iterator rbegin() noexcept;
+            const_reverse_iterator rbegin() const noexcept;
+            reverse_iterator rend() noexcept;
+            const_reverse_iterator rend() const noexcept;
+
+            const_iterator cbegin() const noexcept;
+            const_iterator cend() const noexcept;
+            const_reverse_iterator crbegin() const noexcept;
+            const_reverse_iterator crend() const noexcept;
+
+            // capacity:
+            bool empty() const noexcept;
+            size_type size() const noexcept;
+            size_type max_size() const noexcept;
+
+            // modifiers:
+            template <class... Args> pair<iterator, bool> emplace(Args&&... args);
+            template <class... Args> iterator emplace_hint(const_iterator position,
+                                                           Args&&... args);
+            iterator insert(const value_type& x);
+            iterator insert(value_type&& x);
+            template <class P> iterator insert(P&& x);
+            iterator insert(const_iterator position, const value_type& x);
+            iterator insert(const_iterator position, value_type&& x);
+            template <class P> iterator insert(const_iterator position, P&&);
+            template <class InputIterator, class Sentinel>
+            void insert(InputIterator first, Sentinel second);
+
+            iterator erase(iterator position);
+            iterator erase(const_iterator position);
+            size_type erase(const key_type& x);
+            iterator erase(const_iterator first, const_iterator last);
+
+            void swap(map&)
+                noexcept(allocator_traits<Allocator>::is_always_equal::value &&
+                         is_nothrow_swappable_v<Compare>);
+            void clear() noexcept;
+
+            // observers:
+            key_compare key_comp() const;
+            value_compare value_comp() const;
+
+            // map operations:
+            iterator find(const key_type& x);
+            const_iterator find(const key_type& x) const;
+            template <class K> iterator find(const K& x);
+            template <class K> const_iterator find(const K& x) const;
+            size_type count(const key_type& x) const;
+            template <class K> size_type count(const K& x) const;
+            iterator lower_bound(const key_type& x);
+            const_iterator lower_bound(const key_type& x) const;
+            template <class K> iterator lower_bound(const K& x);
+            template <class K> const_iterator lower_bound(const K& x) const;
+            iterator upper_bound(const key_type& x);
+            const_iterator upper_bound(const key_type& x) const;
+            template <class K> iterator upper_bound(const K& x);
+            template <class K> const_iterator upper_bound(const K& x) const;
+            pair<iterator, iterator> equal_range(const key_type& x);
+            pair<const_iterator, const_iterator> equal_range(const key_type& x) const;
+            template <class K>
+            pair<iterator, iterator> equal_range(const K& x);
+            template <class K>
+            pair<const_iterator, const_iterator> equal_range(const K& x) const;
+        }
+
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator==(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator< (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator!=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator> (const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator>=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+        template <class Key, class T, class Compare, class Allocator>
+        bool operator<=(const flat_multimap<Key, T, Compare, Allocator>& x,
+                        const flat_multimap<Key, T, Compare, Allocator>& y);
+
+        // specialized algorithms:
+        template <class Key, class T, class Compare, class Allocator>
+        void swap(flat_multimap<Key, T, Compare, Allocator>& x,
+                  flat_multimap<Key, T, Compare, Allocator>& y)
+                noexcept(noexcept(x.swap(y)));
+    }
+
+    flat_multimap constructors, copy, and assignment [flat_multimap.cons]
+
+    explicit flat_multimap(const Compare& comp, const Allocator& = Allocator{});
+
+        Effects: Constructs an empty flat_multimap using the specified comparison objects
+                 and allocator.
+        Complexity: Constant.
+
+    template <class InputIterator, class Sentinel>
+    flat_multimap(InputIterator first, Sentinel second, const Compare& comp = Compare{},
+             const Allocator& = Allocator{});
+    
+        Effects: Constructs an empty flat_multimap using the specified comparison objects and
+                 allocator, and inserts elements from the range [first, last).
+        Complexity: Linear in N if the range [first, last) is already sorted using comp and
+                    otherwise N logN, where N is last - first.
+
+    flat_multimap modifiers [flat_multimap.modifiers]
+
+    template <class P> pair<iterator, bool> insert(P&& x);
+    template <class P> iterator insert(const_iterator position, P&& x);
+
+        Effects: The first form is equivalent to return emplace(forward<P>(x)). The second
+                 form is equivalent to return emplace_hint(position, forward<P>(x)).
+        Remarks: These signatures shall not participate in overload resolution unless
+                 std::is_constructible_v<key_type, decltype(get<0>(forward<P>(x)))> and
+                 std::is_constructible_v<mapped_type, decltype(get<1>(forward<P>(x)))> are true.
+                 The references in objects of type value_type will be invalidated.
+
+    template <class... Args>
+    iterator try_emplace(const key_type& k, Args&&... args);
+    
+        Requires: mapped_type shall be EmplaceConstructible into map from
+                  forward_as_tuple(forward<Args>(args)...).
+        Effects: Inserts an object at the key of type mapped_type constructed with
+                 forward_as_tuple(forward<Args>(args)...).
+        Returns: The returned iterator points to the newly inserted flat_multimap element whose key is
+                 equivalent to k. The references in objects of type value_type will be invalidated.
+        Complexity: The same as emplace and emplace_hint, respectively.
+ 
+
+    flat_multimap specialized algorithms [flat_multimap.special]
+
+    template <class Key, class T, class Compare, class Allocator>
+    void swap(flat_multimap<Key, T, Compare, Allocator>& x,
+              flat_multimap<Key, T, Compare, Allocator>& y)
         noexcept(noexcept(x.swap(y)));
 
         Effects: As if by x.swap(y).
@@ -557,7 +766,7 @@ In chapter [containers] add:
 
     Class template flat_set overview [flat_set.overview]
 
-    A flat)set is an associative container that supports unique keys (contains at most one of each
+    A flat_set is an associative container that supports unique keys (contains at most one of each
     key value) and provides for fast retrieval of the keys themselves. The flat_set class supports
     bidirectional iterators.
     
@@ -568,6 +777,8 @@ In chapter [containers] add:
     For a flat_set<Key> both the key_type and value_type are Key. Descriptions are provided here
     only for operations on flat_set that are not described in one of these tables and for
     operations where there is additional semantic information.
+
+    The basic exception guarantee is provided by flat_set. 
 
     namespace std {
         template <class Key, class Compare = default_order_t<Key>,
@@ -740,6 +951,199 @@ In chapter [containers] add:
     template <class Key, class Compare, class Allocator>
     void swap(flat_set<Key, Compare, Allocator>& x,
               flat_set<Key, Compare, Allocator>& y)
+        noexcept(noexcept(x.swap(y)));
+
+        Effects: As if by x.swap(y).
+
+        Class template flat_set [flat_set]
+
+    Class template flat_multiset overview [flat_multiset.overview]
+
+    A flat_multiset is an associative container that supports equivalent keys (possibly containing multiple
+    copies of the same key value) and provides for fast retrieval of the keys themselves. The flat_multiset
+    class supports bidirectional iterators.
+    
+    A flat_multiset satisfies all of the requirements of a container, of a reversible container,
+    of an associative container (23.2.4), and of an allocator-aware container (Table 83).
+    A flat_multiset also provides most operations described in (23.2.4) for equal keys. This means
+    that a flat_multiset supports the a_eq operations in (23.2.4) but not the a_uniq operations.
+    For a flat_multiset<Key> both the key_type and value_type are Key. Descriptions are provided here
+    only for operations on flat_multiset that are not described in one of these tables and for
+    operations where there is additional semantic information.
+
+    The basic exception guarantee is provided by flat_multiset. 
+
+    namespace std {
+        template <class Key, class Compare = default_order_t<Key>,
+                  class Allocator = allocator<Key>>
+        class flat_multiset {
+        public:
+            // types:
+            using key_type = Key;
+            using key_compare = Compare;
+            using value_type = Key;
+            using value_compare = Compare;
+            using allocator_type = Allocator;
+            using pointer = typename allocator_traits<Allocator>::pointer;
+            using const_pointer = typename allocator_traits<Allocator>::const_pointer;
+            using reference = value_type&;
+            using const_reference = const value_type&;
+            using size_type = implementation-defined;
+            using difference_type = implementation-defined;
+            using iterator = implementation-defined;
+            using const_iterator = implementation-defined;
+            using reverse_iterator = std::reverse_iterator<iterator>;
+            using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+            // construct/copy/destroy:
+            flat_multiset() : flat_multiset(Compare()) { }
+            explicit flat_multiset(const Compare& comp, const Allocator& = Allocator());
+            template <class InputIterator, class Sentinel>
+            flat_multiset(InputIterator first, Sentinel last,
+                const Compare& comp = Compare(), const Allocator& = Allocator());
+            flat_multiset(const flat_multiset& x);
+            flat_multiset(flat_multiset&& x);
+            explicit flat_multiset(const Allocator&);
+            flat_multiset(const flat_multiset&, const Allocator&);
+            flat_multiset(flat_multiset&&, const Allocator&);
+            flat_multiset(initializer_list<value_type>, const Compare& = Compare(),
+                const Allocator& = Allocator());
+            template <class InputIterator, class Sentinel>
+            flat_multiset(InputIterator first, Sentinel last, const Allocator& a)
+                : flat_multiset(first, last, Compare(), a) { }
+            flat_multiset(initializer_list<value_type> il, const Allocator& a)
+                : flat_multiset(il, Compare(), a) { }
+            ~flat_multiset();
+
+            flat_multiset& operator=(const flat_multiset& x);
+            flat_multiset& operator=(flat_multiset&& x)
+                noexcept(allocator_traits<Allocator>::is_always_equal::value &&
+                         is_nothrow_move_assignable_v<Compare>);
+            flat_multiset& operator=(initializer_list<value_type>);
+
+            allocator_type get_allocator() const noexcept;
+
+            // iterators:
+            iterator begin() noexcept;
+            const_iterator begin() const noexcept;
+            iterator end() noexcept;
+            const_iterator end() const noexcept;
+
+            reverse_iterator rbegin() noexcept;
+            const_reverse_iterator rbegin() const noexcept;
+            reverse_iterator rend() noexcept;
+            const_reverse_iterator rend() const noexcept;
+
+            const_iterator cbegin() const noexcept;
+            const_iterator cend() const noexcept;
+            const_reverse_iterator crbegin() const noexcept;
+            const_reverse_iterator crend() const noexcept;
+
+            // capacity:
+            bool empty() const noexcept;
+            size_type size() const noexcept;
+            size_type max_size() const noexcept;
+
+            // modifiers:
+            template <class... Args> pair<iterator, bool> emplace(Args&&... args);
+            template <class... Args>
+            iterator emplace_hint(const_iterator position, Args&&... args);
+
+            iterator insert(const value_type& x);
+            iterator insert(value_type&& x);
+            iterator insert(const_iterator position, const value_type& x);
+            iterator insert(const_iterator position, value_type&& x);
+            template <class InputIterator, class Sentinel>
+            void insert(InputIterator first, Sentinel last);
+            void insert(initializer_list<value_type>);
+
+            iterator erase(iterator position);
+            iterator erase(const_iterator position);
+            size_type erase(const key_type& x);
+            iterator erase(const_iterator first, const_iterator last);
+
+            void swap(flat_multiset&)
+                noexcept(allocator_traits<Allocator>::is_always_equal::value &&
+                         is_nothrow_swappable_v<Compare>);
+            void clear() noexcept;
+
+            // observers:
+            key_compare key_comp() const;
+            value_compare value_comp() const;
+
+            // flat_multiset operations:
+            iterator find(const key_type& x);
+            const_iterator find(const key_type& x) const;
+            template <class K> iterator find(const K& x);
+            template <class K> const_iterator find(const K& x) const;
+
+            size_type count(const key_type& x) const;
+            template <class K> size_type count(const K& x) const;
+
+            iterator lower_bound(const key_type& x);
+            const_iterator lower_bound(const key_type& x) const;
+            template <class K> iterator lower_bound(const K& x);
+            template <class K> const_iterator lower_bound(const K& x) const;
+
+            iterator upper_bound(const key_type& x);
+            const_iterator upper_bound(const key_type& x) const;
+            template <class K> iterator upper_bound(const K& x);
+            template <class K> const_iterator upper_bound(const K& x) const;
+
+            pair<iterator, iterator> equal_range(const key_type& x);
+            pair<const_iterator, const_iterator> equal_range(const key_type& x) const;
+            template <class K>
+            pair<iterator, iterator> equal_range(const K& x);
+            template <class K>
+            pair<const_iterator, const_iterator> equal_range(const K& x) const;
+        };
+
+        template <class Key, class Compare, class Allocator>
+        bool operator==(const flat_multiset<Key, Compare, Allocator>& x,
+                        const flat_multiset<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator< (const flat_multiset<Key, Compare, Allocator>& x,
+                        const flat_multiset<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator!=(const flat_multiset<Key, Compare, Allocator>& x,
+                        const flat_multiset<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator> (const flat_multiset<Key, Compare, Allocator>& x,
+                        const flat_multiset<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator>=(const flat_multiset<Key, Compare, Allocator>& x,
+                        const flat_multiset<Key, Compare, Allocator>& y);
+        template <class Key, class Compare, class Allocator>
+        bool operator<=(const flat_multiset<Key, Compare, Allocator>& x,
+                        const flat_multiset<Key, Compare, Allocator>& y);
+        
+        template <class Key, class Compare, class Allocator>
+        void swap(flat_multiset<Key, Compare, Allocator>& x,
+                  flat_multiset<Key, Compare, Allocator>& y)
+            noexcept(noexcept(x.swap(y)));
+    }
+
+    flat_multiset constructors, copy, and assignment [flat_multiset.cons]
+
+    explicit flat_multiset(const Compare& comp, const Allocator& = Allocator());
+
+        Effects: Constructs an empty flat_multiset using the specified comparison objects and allocator.
+        Complexity: Constant.
+
+    template <class InputIterator>
+    flat_multiset(InputIterator first, InputIterator last,
+        const Compare& comp = Compare(), const Allocator& = Allocator());
+
+        Effects: Constructs an empty flat_multiset using the specified comparison object and allocator,
+                 and inserts elements from the range [first, last).
+        Complexity: Linear in N if the range [first, last) is already sorted using comp and
+                    otherwise N log N, where N is last - first.
+
+    flat_multiset specialized algorithms [flat_multiset.special]
+    
+    template <class Key, class Compare, class Allocator>
+    void swap(flat_multiset<Key, Compare, Allocator>& x,
+              flat_multiset<Key, Compare, Allocator>& y)
         noexcept(noexcept(x.swap(y)));
 
         Effects: As if by x.swap(y).
