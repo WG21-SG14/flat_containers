@@ -11,7 +11,7 @@ namespace std
 	template <typename, typename, typename> class flat_set;
 }
 
-template <typename ValueT, typename CompareT = std::less<>, typename AllocatorT = std::default_allocator>
+template <typename ValueT, typename CompareT = std::less<>, typename AllocatorT = std::allocator<ValueT>>
 class std::flat_set final
 {
 	using map_type = std::vector<ValueT, AllocatorT>;
