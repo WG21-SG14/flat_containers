@@ -14,33 +14,37 @@ namespace std
 	namespace _detail { template <typename, typename> class flat_map_iterator; }
 }
 
-template <typename KeyT, typename MappedT>
+template <typename KeyIterator, typename MappedIterator>
 class std::_detail::flat_map_iterator
 {
 public:
 	flat_map_iterator() = default;
-	flat_map_iterator(KeyT const* k, MappedT* v) : _key(k), _value(v) {}
+	flat_map_iterator(KeyIterator k, MappedIterator m) : _key(k), _mapped(m) {}
 
 private:
-	KeyT const* _key = nullptr;
-	MappedT* _value = nullptr;
+	KeyIterator _key;
+	MappedIterator _mapped;
 };
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 class std::_detail::flat_map_base
 {
+protected:
+	using key_vector = std::vector<KeyT, typename std::allocator_traits<AllocatorT>::template rebind_alloc<KeyT>>;
+	using value_vector = std::vector<MappedT, typename std::allocator_traits<AllocatorT>::template rebind_alloc<MappedT>>;
+
+	key_vector _keys;
+	value_vector _values;
+
 public:
 	using key_type = KeyT;
 	using mapped_type = MappedT;
 	using value_type = std::pair<KeyT const&, MappedT&>;
-	using iterator = flat_map_iterator<KeyT, MappedT>;
-	using const_iterator = flat_map_iterator<KeyT, MappedT const>;
+	using iterator = flat_map_iterator<typename key_vector::const_iterator, typename value_vector::iterator>;
+	using const_iterator = flat_map_iterator<typename key_vector::const_iterator, typename value_vector::const_iterator>;
 	using size_type = size_t;
 
 protected:
-	std::vector<KeyT, typename std::allocator_traits<AllocatorT>::template rebind_alloc<KeyT>> _keys;
-	std::vector<MappedT, typename std::allocator_traits<AllocatorT>::template rebind_alloc<MappedT>> _values;
-
 	template <typename T, typename U>
 	static T cast_iterator(U&& src) { return reinterpret_cast<T>(std::addressof(*src)); }
 
@@ -93,8 +97,7 @@ public:
 	template <typename FindKeyT>
 	inline mapped_type& operator[](FindKeyT const& key);
 
-	template <typename KeyT2, typename MappedT2>
-	inline std::pair<iterator, bool> insert(std::pair<KeyT2, MappedT2>&& element);
+	inline std::pair<iterator, bool> insert(std::pair<KeyT, MappedT>&& element);
 
 	template <typename EmplaceKeyT, typename... P0toN>
 	inline std::pair<iterator, bool> emplace(EmplaceKeyT&& key, P0toN&&... params);
@@ -109,8 +112,7 @@ public:
 	template <typename FindKeyT>
 	inline mapped_type& operator[](FindKeyT const& key);
 
-	template <typename KeyT2, typename MappedT2>
-	inline iterator insert(std::pair<KeyT2, MappedT2>&& element);
+	inline iterator insert(std::pair<KeyT, MappedT>&& element);
 
 	template <typename EmplaceKeyT, typename... P0toN>
 	inline iterator emplace(EmplaceKeyT&& key, P0toN&&... params);
@@ -136,8 +138,8 @@ auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::find(Find
 {
 	auto compare = inner_compare_type();
 	auto it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
-	if (it != _keys.end() && !compare(key, it->first))
-		return cast_iterator<iterator>(it);
+	if (it != _keys.end() && !compare(key, *it))
+		return iterator(it);
 	else
 		return end();
 }
@@ -147,9 +149,9 @@ template <typename FindKeyT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::find(FindKeyT const& key) const -> const_iterator
 {
 	auto compare = inner_compare_type();
-	auto const rng = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
-	if (!rng.empty() && !compare(key, rng.front().first))
-		return cast_iterator<const_iterator>(rng.begin());
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
+	if (it != _keys.end() && !compare(key, *it))
+		return const_iterator(it.begin());
 	else
 		return end();
 }
@@ -157,7 +159,7 @@ auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::find(Find
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::erase(const_iterator iter) -> iterator
 {
-	return cast_iterator<iterator>(_data.erase(_data.begin() + (iter - begin())));
+	return iterator(_data.erase(_data.begin() + (iter - begin())));
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
@@ -170,9 +172,9 @@ template <typename KeyT, typename MappedT, typename CompareT, typename Allocator
 template <typename EraseKeyT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::erase(EraseKeyT const& key) -> size_type
 {
-	auto rng = equal_range(key);
-	erase(rng.first, rng.second);
-	return rng.second - rng.first;
+	auto it = equal_range(key);
+	erase(it.first, it.second);
+	return it.second - it.first;
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
@@ -187,55 +189,59 @@ template <typename FindKeyT>
 auto std::flat_map<KeyT, MappedT, CompareT, AllocatorT>::operator[](FindKeyT const& key) -> mapped_type&
 {
 	auto compare = inner_compare_type();
-	auto const rng = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
-	if (!rng.empty() && !compare(key, rng.front().first))
-		return rng.front().second;
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
+	if (it != _keys.end() && !compare(key, *it))
+		return it->second;
 
 	return emplace(key, MappedT()).first->second;
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
-template <typename KeyT2, typename MappedT2>
-auto std::flat_map<KeyT, MappedT, CompareT, AllocatorT>::insert(std::pair<KeyT2, MappedT2>&& element) -> std::pair<iterator, bool>
+auto std::flat_map<KeyT, MappedT, CompareT, AllocatorT>::insert(std::pair<KeyT, MappedT>&& element) -> std::pair<iterator, bool>
 {
-	auto compare = inner_compare_type();
-	auto const rng = std::lower_bound(_keys.begin(), _keys.end(), element.first, compare);
-	if (!rng.empty() && !compare(element.first, rng.front().first))
-		return std::make_pair(cast_iterator<iterator>(rng.begin()), false);
+	auto compare = CompareT();
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), element.first, compare);
+	if (it != _keys.end() && !compare(element.first, *it))
+	{
+		return std::make_pair(iterator(it, _values.begin() + (it - _keys.begin())), false);
+	}
 	else
-		return std::make_pair(cast_iterator<iterator>(_data.emplace(rng.begin(), std::move(element))), true);
+	{
+		_keys.push_back(std::move(element).first);
+		_values.push_back(std::move(element).second);
+		return std::make_pair(iterator(_keys.end() - 1, _values.end() - 1), true);
+	}
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 template <typename EmplaceKeyT, typename... P0toN>
 auto std::flat_map<KeyT, MappedT, CompareT, AllocatorT>::emplace(EmplaceKeyT&& key, P0toN&&... params) -> std::pair<iterator, bool>
 {
-	auto compare = inner_compare_type();
-	auto const rng = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
-	if (!rng.empty() && !compare(key, rng.front().first))
-		return std::make_pair(cast_iterator<iterator>(rng.begin()), false);
+	auto compare = CompareT();
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
+	if (it != _keys.end() && !compare(key, *it))
+		return std::make_pair(iterator(it.begin(), _values.data() + (it - _keys.begin())), false);
 	else
-		return std::make_pair(cast_iterator<iterator>(_data.emplace(rng.begin(), std::forward<EmplaceKeyT>(key), MappedT(std::forward<P0toN>(params)...))), true);
+		return std::make_pair(iterator(_data.emplace(it.begin(), std::forward<EmplaceKeyT>(key), MappedT(std::forward<P0toN>(params)...))), true);
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 template <typename FindKeyT>
 auto std::flat_multimap<KeyT, MappedT, CompareT, AllocatorT>::operator[](FindKeyT const& key) -> mapped_type&
 {
-	auto compare = inner_compare_type();
-	auto const rng = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
-	if (!rng.empty() && !compare(key, rng.front().first))
-		return rng.front().second;
+	auto compare = CompareT();
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
+	if (it != _keys.end() && !compare(key, *it))
+		return it->second;
 
 	return emplace(key, MappedT()).first->second;
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
-template <typename KeyT2, typename MappedT2>
-auto std::flat_multimap<KeyT, MappedT, CompareT, AllocatorT>::insert(std::pair<KeyT2, MappedT2>&& element) -> iterator
+auto std::flat_multimap<KeyT, MappedT, CompareT, AllocatorT>::insert(std::pair<KeyT, MappedT>&& element) -> iterator
 {
-	auto const rng = std::lower_bound(_keys.begin(), _keys.end(), element.first, inner_compare_type());
-	return cast_iterator<iterator>(_data.emplace(rng.begin(), std::move(element)));
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), element.first, inner_compare_type());
+	return iterator(_data.emplace(it.begin(), std::move(element)));
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
@@ -243,8 +249,8 @@ template <typename EmplaceKeyT, typename... P0toN>
 auto std::flat_multimap<KeyT, MappedT, CompareT, AllocatorT>::emplace(EmplaceKeyT&& key, P0toN&&... params) -> iterator
 {
 	auto compare = inner_compare_type();
-	auto const rng = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
-	return cast_iterator<iterator>(_data.emplace(rng.begin(), std::forward<EmplaceKeyT>(key), MappedT(std::forward<P0toN>(params)...)));
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
+	return iterator(_data.emplace(it.begin(), std::forward<EmplaceKeyT>(key), MappedT(std::forward<P0toN>(params)...)));
 }
 
 #endif // !defined(SG14_FLAT_MAP_H__)
