@@ -14,16 +14,29 @@ namespace std
 	namespace _detail { template <typename, typename> class flat_map_iterator; }
 }
 
-template <typename KeyIterator, typename MappedIterator>
+template <typename KeyT, typename MappedT>
 class std::_detail::flat_map_iterator
 {
 public:
+	using value_type = std::pair<KeyT const&, MappedT&>;
+	using reference = value_type const&;
+	using pointer = value_type const*;
+
 	flat_map_iterator() = default;
-	flat_map_iterator(KeyIterator k, MappedIterator m) : _key(k), _mapped(m) {}
+	flat_map_iterator(KeyT const* k, MappedT* m) : _ptr(k, m) {}
+
+	flat_map_iterator& operator++() { ++_ptr.first; ++_ptr.second; return *this; }
+	flat_map_iterator& operator++(int) { auto tmp = *this; ++_ptr.first; ++_ptr.second; return tmp; }
+
+	reference operator*() const { return reinterpret_cast<reference>(_ptr); }
+	pointer operator->() const { return reinterpret_cast<pointer>(&_ptr); }
+
+	bool operator==(flat_map_iterator const& rhs) const { return _ptr.first == rhs._ptr.first; }
+	bool operator!=(flat_map_iterator const& rhs) const { return _ptr.first != rhs._ptr.first; }
+	bool operator<(flat_map_iterator const& rhs) const { return _ptr.first < rhs._ptr.first; }	
 
 private:
-	KeyIterator _key;
-	MappedIterator _mapped;
+	std::pair<KeyT const*, MappedT*> _ptr = {nullptr, nullptr};
 };
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
@@ -40,8 +53,8 @@ public:
 	using key_type = KeyT;
 	using mapped_type = MappedT;
 	using value_type = std::pair<KeyT const&, MappedT&>;
-	using iterator = flat_map_iterator<typename key_vector::const_iterator, typename value_vector::iterator>;
-	using const_iterator = flat_map_iterator<typename key_vector::const_iterator, typename value_vector::const_iterator>;
+	using iterator = flat_map_iterator<KeyT const, MappedT>;
+	using const_iterator = flat_map_iterator<KeyT const, MappedT const>;
 	using size_type = size_t;
 
 protected:
@@ -188,10 +201,10 @@ template <typename KeyT, typename MappedT, typename CompareT, typename Allocator
 template <typename FindKeyT>
 auto std::flat_map<KeyT, MappedT, CompareT, AllocatorT>::operator[](FindKeyT const& key) -> mapped_type&
 {
-	auto compare = inner_compare_type();
+	auto compare = CompareT();
 	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
 	if (it != _keys.end() && !compare(key, *it))
-		return it->second;
+		return _values[it - _keys.begin()];
 
 	return emplace(key, MappedT()).first->second;
 }
@@ -201,15 +214,16 @@ auto std::flat_map<KeyT, MappedT, CompareT, AllocatorT>::insert(std::pair<KeyT, 
 {
 	auto compare = CompareT();
 	auto const it = std::lower_bound(_keys.begin(), _keys.end(), element.first, compare);
+	auto const diff = it - _keys.begin();
 	if (it != _keys.end() && !compare(element.first, *it))
 	{
-		return std::make_pair(iterator(it, _values.begin() + (it - _keys.begin())), false);
+		return std::make_pair(iterator(_keys.data() + diff, _values.data() + diff), false);
 	}
 	else
 	{
-		_keys.push_back(std::move(element).first);
-		_values.push_back(std::move(element).second);
-		return std::make_pair(iterator(_keys.end() - 1, _values.end() - 1), true);
+		_keys.insert(it, std::move(element).first);
+		_values.insert(_values.begin() + diff, std::move(element).second);
+		return std::make_pair(iterator(_keys.data() + _keys.size() - 1, _values.data() + _values.size() - 1), true);
 	}
 }
 
@@ -219,10 +233,17 @@ auto std::flat_map<KeyT, MappedT, CompareT, AllocatorT>::emplace(EmplaceKeyT&& k
 {
 	auto compare = CompareT();
 	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
+	auto const diff = it - _keys.begin();
 	if (it != _keys.end() && !compare(key, *it))
-		return std::make_pair(iterator(it.begin(), _values.data() + (it - _keys.begin())), false);
+	{
+		return std::make_pair(iterator(&*it, _values.data() + (it - _keys.begin())), false);
+	}
 	else
-		return std::make_pair(iterator(_data.emplace(it.begin(), std::forward<EmplaceKeyT>(key), MappedT(std::forward<P0toN>(params)...))), true);
+	{
+		_keys.emplace(it, std::forward<EmplaceKeyT>(key));
+		_values.emplace(_values.begin() + diff, std::forward<P0toN>(params)...);
+		return std::make_pair(iterator(_keys.data() + diff, _values.data() + diff), true);
+	}
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
