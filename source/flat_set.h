@@ -18,12 +18,9 @@ class std::flat_set final
 	
 	map_type _data;
 
-	template <typename T, typename U>
-	static T cast_iterator(U&& src) { return const_cast<T>(std::addressof(*src)); }
-
 public:
 	using value_type = ValueT;
-	using iterator = typename map_type::iterator;
+	using iterator = typename map_type::const_iterator;
 	using const_iterator = typename map_type::const_iterator;
 	using size_type = size_t;
 
@@ -70,9 +67,9 @@ template <typename FindT>
 auto std::flat_set<ValueT, CompareT, AllocatorT>::find(FindT const& value) -> iterator
 {
 	auto compare = CompareT();
-	auto const rng = std::lower_bound(_data, value, compare);
-	if (!rng.empty() && !compare(value, rng.front()))
-		return cast_iterator<iterator>(rng.begin());
+	auto const it = std::lower_bound(_data.begin(), _data.end(), value, compare);
+	if (it != _data.end() && !compare(value, *it))
+		return it;
 	else
 		return end();
 }
@@ -82,9 +79,9 @@ template <typename FindT>
 auto std::flat_set<ValueT, CompareT, AllocatorT>::find(FindT const& value) const -> const_iterator
 {
 	auto compare = CompareT();
-	auto const rng = std::lower_bound(_data, value, compare);
-	if (!rng.empty() && !compare(value, rng.front()))
-		return cast_iterator<iterator>(rng.begin());
+	auto const it = std::lower_bound(_data.begin(), _data.end(), value, compare);
+	if (it != _data.end() && !compare(value, *it))
+		return it;
 	else
 		return end();
 }
@@ -93,22 +90,22 @@ template <typename ValueT, typename CompareT, typename AllocatorT>
 auto std::flat_set<ValueT, CompareT, AllocatorT>::insert(value_type const& value) -> std::pair<iterator, bool>
 {
 	auto compare = CompareT();
-	auto const rng = std::lower_bound(_data, value, compare);
-	if (!rng.empty() && !compare(value, rng.front()))
-		return std::make_pair(cast_iterator<iterator>(rng.begin()), false);
+	auto const it = std::lower_bound(_data.begin(), _data.end(), value, compare);
+	if (it != _data.end() && !compare(value, *it))
+		return std::make_pair(it, false);
 	else
-		return std::make_pair(cast_iterator<iterator>(_data.insert(rng.begin(), value)), true);
+		return std::make_pair(_data.insert(it, value), true);
 }
 
 template <typename ValueT, typename CompareT, typename AllocatorT>
 auto std::flat_set<ValueT, CompareT, AllocatorT>::insert(value_type&& value) -> std::pair<iterator, bool>
 {
 	auto compare = CompareT();
-	auto const rng = std::lower_bound(_data, value, compare);
-	if (!rng.empty() && !compare(value, rng.front()))
-		return std::make_pair(cast_iterator<iterator>(rng.begin()), false);
+	auto const it = std::lower_bound(_data.begin(), _data.end(), value, compare);
+	if (it != _data.end() && !compare(value, *it))
+		return std::make_pair(it, false);
 	else
-		return std::make_pair(cast_iterator<iterator>(_data.insert(rng.begin(), std::move(value))), true);
+		return std::make_pair(_data.insert(it, std::move(value)), true);
 }
 
 template <typename ValueT, typename CompareT, typename AllocatorT>
@@ -117,11 +114,11 @@ auto std::flat_set<ValueT, CompareT, AllocatorT>::emplace(P0toN&&... params) -> 
 {
 	auto value = ValueT(std::forward<P0toN>(params)...);
 	auto compare = CompareT();
-	auto const rng = std::lower_bound(_data, value, compare);
-	if (!rng.empty() && !compare(value, rng.front()))
-		return std::make_pair(cast_iterator<iterator>(rng.begin()), false);
+	auto const it = std::lower_bound(_data.begin(), _data.end(), value, compare);
+	if (it != _data.end() && !compare(value, *it))
+		return std::make_pair(it, false);
 	else
-		return std::make_pair(cast_iterator<iterator>(_data.emplace(rng.begin(), std::move(value))), true);
+		return std::make_pair(_data.emplace(it, std::move(value)), true);
 }
 
 template <typename ValueT, typename CompareT, typename AllocatorT>
