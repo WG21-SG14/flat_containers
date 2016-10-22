@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+    <PropertyGroup>
+        <ProjectGuid>{8b2e3f85-24ff-42c6-b5c0-3e616956e214}</ProjectGuid>
+    </PropertyGroup>
+    <PropertyGroup>
+        <OutDir>../bin/</OutDir>
+    </PropertyGroup>
+    <PropertyGroup>
+        <ConfigurationType>Application</ConfigurationType>
+        <PlatformToolset>v140</PlatformToolset>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectConfiguration Include="Debug|Win32">
+            <Configuration>Debug</Configuration>
+            <Platform>Win32</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Release|Win32">
+            <Configuration>Release</Configuration>
+            <Platform>Win32</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Debug|x64">
+            <Configuration>Debug</Configuration>
+            <Platform>x64</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Release|x64">
+            <Configuration>Release</Configuration>
+            <Platform>x64</Platform>
+        </ProjectConfiguration>
+    </ItemGroup>
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+    <ItemGroup>
+        <ClInclude Include="flat_map.h" />
+    </ItemGroup>
+    <ItemGroup>
+        <ClCompile Include="test.cpp"/>
+    </ItemGroup>
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
