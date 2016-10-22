@@ -13,6 +13,8 @@ int main()
     m.insert({3, 4});
     m[5] = 6;
 
+    m.erase(3);
+
     for (auto v : m)
         std::cout << v.first << ':' << v.second << ' ';
 
@@ -20,6 +22,8 @@ int main()
     s.insert(7);
     s.insert(3);
     s.insert(5);
+
+    s.erase(3);
 
     for (auto v : s)
         std::cout << v << ' ';

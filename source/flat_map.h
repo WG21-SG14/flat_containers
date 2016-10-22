@@ -17,19 +17,25 @@ namespace std
 template <typename KeyT, typename MappedT>
 class std::_detail::flat_map_iterator
 {
+	template <typename, typename> friend class flat_map_iterator;
+
 public:
 	using value_type = std::pair<KeyT const&, MappedT&>;
 	using reference = value_type const&;
 	using pointer = value_type const*;
+	using difference_type = std::ptrdiff_t;
 
 	flat_map_iterator() = default;
 	flat_map_iterator(KeyT const* k, MappedT* m) : _ptr(k, m) {}
+	flat_map_iterator(flat_map_iterator<KeyT, typename std::remove_const<MappedT>::type> const& rhs) : _ptr(rhs._ptr.first, rhs._ptr.second) {}
 
 	flat_map_iterator& operator++() { ++_ptr.first; ++_ptr.second; return *this; }
 	flat_map_iterator& operator++(int) { auto tmp = *this; ++_ptr.first; ++_ptr.second; return tmp; }
 
 	reference operator*() const { return reinterpret_cast<reference>(_ptr); }
 	pointer operator->() const { return reinterpret_cast<pointer>(&_ptr); }
+
+	difference_type operator-(flat_map_iterator const& rhs) const { return _ptr.first - rhs._ptr.first; }
 
 	bool operator==(flat_map_iterator const& rhs) const { return _ptr.first == rhs._ptr.first; }
 	bool operator!=(flat_map_iterator const& rhs) const { return _ptr.first != rhs._ptr.first; }
@@ -135,22 +141,26 @@ template <typename KeyT, typename MappedT, typename CompareT, typename Allocator
 template <typename FindKeyT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::equal_range(FindKeyT const& key) -> pair<iterator, iterator>
 {
-	return std::equal_range(_keys.begin(), _keys.end(), key, inner_compare_type());
+	auto const range = std::equal_range(_keys.begin(), _keys.end(), key, CompareT());
+	auto const diff = std::make_pair(range.first - _keys.begin(), range.second - _keys.begin());
+	return std::make_pair(iterator(_keys.data() + diff.first, _values.data() + diff.first), iterator(_keys.data() + diff.second, _values.data() + diff.second));
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 template <typename FindKeyT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::equal_range(FindKeyT const& key) const -> pair<const_iterator, const_iterator>
 {
-	return std::equal_range(_keys.begin(), _keys.end(), key, inner_compare_type());
+	auto const range = std::equal_range(_keys.begin(), _keys.end(), key, CompareT());
+	auto const diff = std::make_pair(range.first - _keys.begin(), range.second - _keys.begin());
+	return std::make_pair(const_iterator(_keys.data() + diff.first, _values.data() + diff.first), const_iterator(_keys.data() + diff.second, _values.data() + diff.second));
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 template <typename FindKeyT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::find(FindKeyT const& key) -> iterator
 {
-	auto compare = inner_compare_type();
-	auto it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
+	auto compare = CompareT();
+	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
 	if (it != _keys.end() && !compare(key, *it))
 		return iterator(it);
 	else
@@ -161,10 +171,10 @@ template <typename KeyT, typename MappedT, typename CompareT, typename Allocator
 template <typename FindKeyT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::find(FindKeyT const& key) const -> const_iterator
 {
-	auto compare = inner_compare_type();
+	auto compare = CompareT();
 	auto const it = std::lower_bound(_keys.begin(), _keys.end(), key, compare);
 	if (it != _keys.end() && !compare(key, *it))
-		return const_iterator(it.begin());
+		return const_iterator(it);
 	else
 		return end();
 }
@@ -172,13 +182,20 @@ auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::find(Find
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 auto std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::erase(const_iterator iter) -> iterator
 {
-	return iterator(_data.erase(_data.begin() + (iter - begin())));
+	auto const diff = iter - begin();
+	_keys.erase(_keys.begin() + diff);
+	_values.erase(_values.begin() + diff);
+	return begin() + diff;
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
 void std::_detail::flat_map_base<KeyT, MappedT, CompareT, AllocatorT>::erase(const_iterator begin_iter, const_iterator end_iter)
 {
-	_data.erase(_data.begin() + (begin_iter - begin()), _data.begin() + (end_iter - begin()));
+	auto const first = begin_iter - begin();
+	auto const last = end_iter - begin();
+
+	_keys.erase(_keys.begin() + first, _keys.begin() + last);
+	_values.erase(_values.begin() + first, _values.begin() + last);
 }
 
 template <typename KeyT, typename MappedT, typename CompareT, typename AllocatorT>
